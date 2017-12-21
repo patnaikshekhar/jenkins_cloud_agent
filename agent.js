@@ -19,7 +19,7 @@ const updateDynamo = (hostname) => new Promise((resolve, reject) => {
         Item: {
             id: instanceId,
             status: 'Completed',
-            url: hostname
+            url: `http://${hostname}:8080`
         }
     }
     
