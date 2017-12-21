@@ -1,5 +1,6 @@
 const instanceId = process.argv[2]
 const AWS = require('aws-sdk')
+const request = require('request')
 
 const dynamo = new AWS.DynamoDB.DocumentClient({
     region: 'eu-west-2'
@@ -12,12 +13,13 @@ const sqs = new AWS.SQS({
 const INSTANCES_TABLE = 'JenkinsInstances'
 const UI_UPDATE_QUEUE_URL = 'https://sqs.eu-west-2.amazonaws.com/463674642148/jenkins_cloud_ui_update'
 
-const updateDynamo = () => new Promise((resolve, reject) => {
+const updateDynamo = (hostname) => new Promise((resolve, reject) => {
     const params = {
         TableName: INSTANCES_TABLE,
         Item: {
             id: instanceId,
-            status: 'Completed'
+            status: 'Completed',
+            url: hostname
         }
     }
     
@@ -30,6 +32,16 @@ const updateDynamo = () => new Promise((resolve, reject) => {
         } else {
             console.log('Done update instance')
             resolve()
+        }
+    })
+})
+
+const getPublicHostname = () => new Promise((resolve, reject) => {
+    request.get('http://169.254.169.254/latest/meta-data/public-hostname', {}, (err, response, body) => {
+        if (err) {
+            reject(err)
+        } else {
+            resolve(body)
         }
     })
 })
@@ -56,7 +68,8 @@ const postUpdateUI = () => new Promise((resolve, reject) => {
     })
 })
 
-updateDynamo()
+getPublicHostname()
+    .then((hostname) => updateDynamo(hostname))
     .then(() => postUpdateUI())
     .catch(e => console.error(e))
 
