@@ -11,7 +11,9 @@ const sqs = new AWS.SQS({
     region: 'eu-west-1'
 })
 
-const sns = new AWS.SNS()
+const sns = new AWS.SNS({
+    region: 'eu-west-2'
+})
 
 const INSTANCES_TABLE = 'JenkinsInstances'
 const UI_UPDATE_QUEUE_URL = 'https://sqs.eu-west-2.amazonaws.com/463674642148/jenkins_cloud_ui_update'
